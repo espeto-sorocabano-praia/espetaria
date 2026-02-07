@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cardápio Sorocabanos</title>
+    
+    <link rel="icon" type="image/jpeg" href="icon.jpg?v=13">
+    <meta name="theme-color" content="#D35400">
+
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-image: url("img/bg-sites.png");
+            background-size: cover;
+            background-attachment: fixed;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .cardapio-container {
+            width: 100%;
+            max-width: 500px;
+            margin-bottom: 100px;
+        }
+
+        .header-banner {
+            width: 100%;
+            border-radius: 30px;
+            margin-bottom: 25px;
+            overflow: hidden;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+        }
+
+        .header-banner img {
+            width: 100%;
+            display: block;
+        }
+
+        .item-cardapio {
+            display: block;
+            position: relative;
+            background: white;
+            margin-bottom: 25px;
+            border-radius: 30px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+            overflow: hidden;
+            border-left: 6px solid #D35400;
+        }
+
+        /* Cores de borda independentes */
+        .borda-verde { border-left-color: #2ecc71 !important; }
+        .borda-azul { border-left-color: #3498db !important; }
+
+        .foto-container {
+            background-color: #ffffff; 
+            width: 100%;
+            height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding-top: 20px;
+        }
+
+        .item-cardapio img { 
+            max-width: 90%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        .info { padding: 20px; display: flex; flex-direction: column; }
+
+        /* TAGS INDIVIDUAIS */
+        .tag { 
+            color: white; 
+            font-size: 0.7rem; 
+            font-weight: bold; 
+            padding: 4px 12px; 
+            border-radius: 6px; 
+            display: inline-block; 
+            margin-bottom: 10px;
+            align-self: flex-start;
+            text-transform: uppercase;
+        }
+        
+        /* Paleta de Cores das Tags */
+        .tag-carne { background: #7d0606; }
+        .tag-frango { background: #f1c40f; color: #000; }
+        .tag-lingua { background: #e67e22; }
+        .tag-misto { background: #8e44ad; }
+        .tag-queijo { background: #f39c12; }
+        .tag-veggie { background: #27ae60; }
+        .tag-pao { background: #d2b48c; color: #000; }
+        .tag-picante { background: #d30000; }
+        .tag-gelada { background: #2ecc71; }
+        .tag-refrescante { background: #3498db; }
+
+        .info h3 { font-size: 1.35rem; color: #1a202c; font-weight: 800; margin-bottom: 6px; }
+        .info p { font-size: 0.95rem; color: #4a5568; line-height: 1.4; margin-bottom: 20px; }
+
+        .footer-item { display: flex; justify-content: space-between; align-items: center; }
+        .preco { color: #D35400; font-weight: 900; font-size: 1.5rem; }
+
+        .controls { display: flex; align-items: center; gap: 15px; }
+        .btn-qty {
+            width: 36px; height: 36px; border-radius: 12px; border: none;
+            background: #D35400; color: white; font-size: 1.4rem;
+            font-weight: bold; cursor: pointer; display: flex;
+            align-items: center; justify-content: center;
+        }
+
+        .cart-bar {
+            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+            width: 90%; max-width: 440px;
+            background: #D35400; color: white;
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 18px 30px; border-radius: 50px;
+            box-shadow: 0 10px 25px rgba(211, 84, 0, 0.4);
+            cursor: pointer; z-index: 1000; font-weight: bold;
+        }
+
+        .modern-modal {
+            display: none; position: fixed; z-index: 9999;
+            left: 0; top: 0; width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.85);
+            backdrop-filter: blur(8px); align-items: center; justify-content: center;
+        }
+        .modal-content { background: white; padding: 30px; border-radius: 25px; width: 90%; max-width: 400px; text-align: center; }
+        .success-content { background: #1a1a1a; color: white; border: 2px solid #D35400; }
+        .check-icon { font-size: 40px; color: #00ff88; border: 2px solid #00ff88; width: 70px; height: 70px; line-height: 70px; border-radius: 50%; margin: 0 auto 20px; }
+        .btn-final { background: #D35400; color: white; border: none; padding: 15px; border-radius: 50px; font-weight: bold; width: 100%; cursor: pointer; margin-top: 15px; }
+    </style>
+</head>
+<body>
+
+    <div class="cardapio-container">
+        <div class="header-banner">
+            <img src="img/header.png" alt="Sorocabanos" onerror="this.src='icon.jpg'">
+        </div>
+
+        <div id="espetos-list"></div>
+        <div id="cervejas-list"></div>
+        <div id="aguas-list"></div>
+    </div>
+
+    <div class="cart-bar" onclick="openOrderModal()">
+        <span>🛒 <span id="cart-count">0</span> ITENS</span>
+        <span id="cart-total">R$ 0,00</span>
+    </div>
+
+    <div id="orderModal" class="modern-modal">
+        <div class="modal-content">
+            <h2 style="color: #D35400; margin-bottom: 15px;">Finalizar Pedido</h2>
+            <input type="text" id="customerName" placeholder="Seu nome" style="width: 100%; padding: 12px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 10px;">
+            <button class="btn-final" onclick="processOrder()">ENVIAR PEDIDO</button>
+            <p onclick="closeModals()" style="margin-top:10px; color:#999; cursor:pointer;">Voltar</p>
+        </div>
+    </div>
+
+    <div id="successModal" class="modern-modal">
+        <div class="modal-content success-content">
+            <div class="check-icon">✓</div>
+            <h2 style="color: #D35400; margin-bottom: 10px;">SUCESSO!</h2>
+            <p id="successMessage" style="margin-bottom: 20px;"></p>
+            <button class="btn-final" onclick="closeModals()">FECHAR</button>
+        </div>
+    </div>
+
+    <script>
+        const espetos = [
+            { id: 1, nome: "EL TORO BRAVO", tag: "CARNE", tClass: "tag-carne", desc: "Suculentos cubos de carne bovina, marinados em especiarias mexicanas.", preco: 14.00, img: "img/crn.png" },
+            { id: 2, nome: "POLLO TROPICAL", tag: "FRANGO", tClass: "tag-frango", desc: "Tentos pedaços de peito de frango, com um toque cítrico e temperos do sol!", preco: 12.00, img: "img/frg.png" },
+            { id: 3, nome: "CHORIZO CALIENTE", tag: "PICANTE", tClass: "tag-picante", desc: "Linguiça artesanal com pimenta suave e um defumado irresistível!", preco: 11.00, img: "img/lngç.png" },
+            { id: 4, nome: "FIESTA MISTA", tag: "MISTO", tClass: "tag-misto", desc: "A celebração perfeita: carne, frango e linguiça em uma só festa!", preco: 15.00, img: "img/lngç-queijo.png" },
+            { id: 5, nome: "QUESO DEL SOL", tag: "QUEIJO", tClass: "tag-queijo", desc: "Cubos de queijo coalho grelhados, crocantes por fora e derretendo por dentro!", preco: 10.00, img: "img/queijo.png" },
+            { id: 6, nome: "JARDÍN SECRETO", tag: "VEGGIE", tClass: "tag-veggie", desc: "Seleção fresca de legumes da estação, grelhados com ervas aromáticas!", preco: 11.00, img: "img/crn_lgm.png" },
+            { id: 7, nome: "CORAZÓN VALIENTE", tag: "CORAÇÃO", tClass: "tag-frango", desc: "Corações de frango tenros e saborosos, com um tempero secreto!", preco: 12.00, img: "img/crç.png" },
+            { id: 8, nome: "PAN DE AJO", tag: "PÃO DE ALHO", tClass: "tag-pao", desc: "Pão crocante com um creme de alho especial e um leve toque picante!", preco: 8.00, img: "img/Pão-alho.png" },
+            { id: 9, nome: "TOCINO DEL DIABLO", tag: "PANCETA", tClass: "tag-picante", desc: "Panceta curada e grelhada com tempero secreto mexicano. Ousado!", preco: 13.00, img: "img/pnct.png" }
+        ];
+
+        const cervejas = [
+            { id: 101, nome: "ORO FRÍO", tag: "GELADA", tClass: "tag-gelada", desc: "Ouro líquido trincando para apagar o fogo das pimentas.", preco: 12.00, img: "img/cerveja.png", cor: "borda-verde" }
+        ];
+
+        const aguas = [
+            { id: 201, nome: "EL MANANTIAL", tag: "REFRESCANTE", tClass: "tag-refrescante", desc: "Direto da fonte o frescor necessário pra continuar a jornada.", preco: 4.00, img: "img/agua.png", cor: "borda-azul" }
+        ];
+
+        let cart = {}; 
+
+        function renderList(data, containerId) {
+            const list = document.getElementById(containerId);
+            list.innerHTML = '';
+            data.forEach(p => {
+                const qtd = cart[p.nome]?.qtd || 0;
+                list.innerHTML += `
+                    <div class="item-cardapio ${p.cor || ''}">
+                        <div class="foto-container"><img src="${p.img}" onerror="this.src='icon.jpg'"></div>
+                        <div class="info">
+                            ${p.tag ? `<span class="tag ${p.tClass}">${p.tag}</span>` : ''}
+                            <h3>${p.nome}</h3>
+                            <p>${p.desc}</p>
+                            <div class="footer-item">
+                                <span class="preco">R$ ${p.preco.toFixed(2).replace('.',',')}</span>
+                                <div class="controls">
+                                    <button class="btn-qty" onclick="changeQty('${p.nome}', ${p.preco}, -1)">-</button>
+                                    <span class="qty-value">${qtd}</span>
+                                    <button class="btn-qty" onclick="changeQty('${p.nome}', ${p.preco}, 1)">+</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`;
+            });
+        }
+
+        function renderAll() {
+            renderList(espetos, 'espetos-list');
+            renderList(cervejas, 'cervejas-list');
+            renderList(aguas, 'aguas-list');
+        }
+
+        function changeQty(nome, preco, delta) {
+            if (!cart[nome]) cart[nome] = { preco: preco, qtd: 0 };
+            cart[nome].qtd += delta;
+            if (cart[nome].qtd <= 0) delete cart[nome];
+            updateCartBar(); renderAll(); 
+        }
+
+        function updateCartBar() {
+            let count = 0; let total = 0;
+            for (let i in cart) { count += cart[i].qtd; total += cart[i].preco * cart[i].qtd; }
+            document.getElementById('cart-count').innerText = count;
+            document.getElementById('cart-total').innerText = `R$ ${total.toFixed(2).replace('.',',')}`;
+        }
+
+        function openOrderModal() { if (Object.keys(cart).length > 0) document.getElementById('orderModal').style.display = 'flex'; }
+        function closeModals() { document.querySelectorAll('.modern-modal').forEach(m => m.style.display='none'); }
+
+        async function processOrder() {
+            const name = document.getElementById('customerName').value;
+            if (!name) return alert("Digite seu nome");
+            confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#D35400', '#ffffff'] });
+            document.getElementById('orderModal').style.display = 'none';
+            document.getElementById('successModal').style.display = 'flex';
+            document.getElementById('successMessage').innerText = `Valeu, ${name}! Pedido enviado.`;
+            cart = {}; updateCartBar(); renderAll();
+        }
+
+        renderAll();
+    </script>
+</body>
+</html>
